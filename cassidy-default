@@ -1,0 +1,1106 @@
+settings
+{
+	main
+	{
+		Description: "roll reload & 10 player 7mins"
+		Mode Name: "cassidy oneshot"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Map Rotation: After A Game
+		Match Voice Chat: Enabled
+		Max FFA Players: 10
+		Max Spectators: 10
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Deathmatch
+		{
+			Score To Win: 99
+
+			enabled maps
+			{
+				Workshop Chamber 0
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Immediately
+			Limit Roles: 2 Of Each Role Per Team
+			Respawn As Random Hero: On
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Cassidy
+			{
+				Combat Roll Cooldown Time: 66%
+				Flashbang: Off
+				Ultimate Generation - Combat Deadeye: 0%
+				Ultimate Generation - Passive Deadeye: 0%
+			}
+
+			enabled heroes
+			{
+				Cassidy
+			}
+		}
+	}
+
+	workshop
+	{
+		time before forcing primary fire: 1.200
+		voice modifier: 0.600
+	}
+
+	extensions
+	{
+		Beam Effects
+		Buff Status Effects
+		Debuff Status Effects
+		Energy Explosion Effects
+		Kinetic Explosion Effects
+		Explosion Sounds
+	}
+}
+
+variables
+{
+	player:
+		2: isFocusing
+		4: ks
+		5: maxks
+		6: smites
+		7: punch
+		26: __for_stormtargets
+		27: __deleted_xa23sd
+		28: __nano_ids
+		29: __nano_iterator
+		30: __death_positions
+		31: __q_time
+		32: __static_animations
+		33: __q_percent
+}
+
+subroutines
+{
+	0: storm
+	1: smite
+	2: test_bolt
+	3: dump
+}
+
+disabled rule("please ignore the code i will make it prettier as best i can soon :(")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("@player @test_bolt")
+{
+	event
+	{
+		Subroutine;
+		test_bolt;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Ana Biotic Grenade Explosion Effect, Color(Team 1), Position Of(Event Player), 1);
+		disabled Play Effect(All Players(All Teams), Winston Jump Pack Landing Effect, Color(Team 1), Position Of(Event Player), 1);
+	}
+}
+
+rule("@ammo @hotfix")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Max Ammo(Event Player, 0) > 1;
+		Is Alive(Event Player) == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Max Ammo(Event Player, 0, 1);
+		Set Ammo(Event Player, 0, 1);
+	}
+}
+
+disabled rule("@player @test_bolt")
+{
+	event
+	{
+		Subroutine;
+		test_bolt;
+	}
+
+	actions
+	{
+		disabled Enable Inspector Recording;
+		Event Player.__static_animations = Array(Eye Position(Event Player), Eye Position(Event Player));
+		"# first part"
+		Create Beam Effect(All Players(All Teams), Winston Tesla Cannon Beam, Event Player.__static_animations[Count Of(
+			Event Player.__static_animations) - 2], Last Of(Event Player.__static_animations), Color(Team 1),
+			Visible To Position and Radius);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		"# second part"
+		Create Beam Effect(All Players(All Teams), Winston Tesla Cannon Beam, Event Player.__static_animations[Count Of(
+			Event Player.__static_animations) - 2], Event Player.__static_animations[Count Of(Event Player.__static_animations) - 3],
+			Color(Team 1), Visible To Position and Radius);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		"# first part OFFSET"
+		Create Beam Effect(All Players(All Teams), Bad Beam, Event Player.__static_animations[Count Of(Event Player.__static_animations)
+			- 2] + Vector(Random Real(-1, 1), Random Real(-1, 1), Random Real(-1, 1)) * 0.200, Last Of(Event Player.__static_animations)
+			+ Vector(Random Real(-1, 1), Random Real(-1, 1), Random Real(-1, 1)) * 0.400, Color(Yellow), Visible To Position and Radius);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		"# second part OFFSET"
+		Create Beam Effect(All Players(All Teams), Bad Beam, Event Player.__static_animations[Count Of(Event Player.__static_animations)
+			- 2] + Vector(Random Real(-1, 1), Random Real(-1, 1), Random Real(-1, 1)) * 0.400, Event Player.__static_animations[Count Of(
+			Event Player.__static_animations) - 3] + Vector(Random Real(-1, 1), Random Real(-1, 1), Random Real(-1, 1)) * 0.200, Color(
+			Yellow), Visible To Position and Radius);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		While(Is Using Ultimate(Event Player));
+			Modify Player Variable(Event Player, __static_animations, Append To Array, Ray Cast Hit Position(Last Of(
+				Event Player.__static_animations), Last Of(Event Player.__static_animations) + Vector(Random Real(-1, 1), Random Real(-1, 1),
+				Random Real(-1, 1)) * 0.900, Event Player, Null, False) + Vector(0, 0, 0));
+			disabled Modify Player Variable(Event Player, __static_animations, Append To Array, Last Of(Event Player.__static_animations) + Vector(
+				Random Real(-1, 1), Random Real(-1, 1), Random Real(-1, 1)) * 1);
+			disabled Wait(0.064, Ignore Condition);
+			Wait(Random Real(0, 0.090), Ignore Condition);
+			Modify Player Variable(Event Player, __static_animations, Remove From Array By Index, 0);
+		End;
+	}
+}
+
+disabled rule("progress bar?")
+{
+	event
+	{
+		Player Joined Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Wait Until(Has Spawned(Event Player), 99999);
+		disabled Create Progress Bar In-World Text(Event Player, 80, Custom String("2 more kills until ultimate"), Update Every Frame(Position Of(
+			Event Player) + Facing Direction Of(Event Player) * Vector(2, 0, 2)), 0.002, Do Not Clip, Color(Rose), Color(White),
+			Visible To Position Values and Color, Default Visibility);
+		Create Progress Bar In-World Text(Event Player, 80, Custom String("2 more kills until ultimate"), Update Every Frame(Eye Position(
+			Event Player) + Vector(0, -600, 0) + Facing Direction Of(Event Player) * 999), 0.200, Do Not Clip, Color(Rose), Color(White),
+			Visible To Position Values and Color, Default Visibility);
+	}
+}
+
+disabled rule("@develop @stormy")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Crouch)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Players In Slot(2, All Teams), 100);
+		Press Button(Players In Slot(2, All Teams), Button(Ultimate));
+		disabled Set Ultimate Charge(Event Player, 20);
+		disabled Kill(Event Player, Null);
+	}
+}
+
+disabled rule("@develop @time")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Set Slow Motion(Random Integer(0, 1) * 100);
+		disabled Create Beam Effect(All Players(All Teams), Winston Tesla Cannon Beam, Vector(0, 0, 0), Event Player, Color(Yellow),
+			Visible To Position and Radius);
+	}
+}
+
+disabled rule("@develop @dummy")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(0);
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Cassidy), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.900, Ignore Condition);
+		Enable Inspector Recording;
+	}
+}
+
+disabled rule("@develop @dummy @move")
+{
+	event
+	{
+		Player Joined Match;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait Until(Has Spawned(Event Player), 99999);
+		Set Move Speed(Event Player, 200);
+		disabled Create Effect(All Players(All Teams), Echo Cloning Effect, Color(White), Event Player, 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Soldier: 76 Sprinting Effect, Color(Team 1), Event Player, 1, None);
+		Start Facing(Event Player, Direction Towards(Event Player, Closest Player To(Event Player, All Teams)), 200, To World,
+			Direction and Turn Rate);
+		While(0 == 0);
+			Start Throttle In Direction(Event Player, Random Value In Array(Array(Forward, Left, Right, Backward)), 1, To Player,
+				Replace existing throttle, Direction and Magnitude);
+			Wait(2, Ignore Condition);
+		End;
+	}
+}
+
+disabled rule("@develop #death")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+	}
+
+	actions
+	{
+		disabled Kill(Event Player, Closest Player To(Event Player, All Teams));
+		disabled Start Rule(storm, Restart Rule);
+		disabled Create Beam Effect(All Players(All Teams), Winston Tesla Cannon Beam, Vector(0, 0, 0), Event Player, Color(Yellow),
+			Visible To Position and Radius);
+		"# darker purple"
+		Create Effect(All Players(All Teams), Cloud, Custom Color(13, 16, 49, 200), Vector(0, 19, 0), 20, Visible To);
+		"# dark purple"
+		disabled Create Effect(All Players(All Teams), Cloud, Custom Color(73, 52, 108, 255), Vector(0, 19, 0), 40, Visible To and Color);
+		"# dark purple"
+		Create Effect(All Players(All Teams), Cloud, Color(Purple), Vector(0, 24, 0), 40, Visible To);
+		"# dark purple"
+		Create Effect(All Players(All Teams), Cloud, Color(Violet), Vector(0, 4, 0), 40, Visible To);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 29, 0), 90, Visible To);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 29, 0), 90, Visible To);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 29, 0), 90, Visible To);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 29, 0), 90, Visible To);
+		"# determined void"
+		Create Effect(All Players(All Teams), Cloud, Number Of Dead Players(All Teams) > 2 ? Color(Red) : Color(Black), Vector(0, 29, 0),
+			40, Visible To and Color);
+		"# determined void"
+		Create Effect(All Players(All Teams), Cloud, Number Of Dead Players(All Teams) % 2 > 0 ? Color(Orange) : Color(Black), Vector(0,
+			29, 0), 60, Visible To and Color);
+		"# determined void"
+		Create Effect(All Players(All Teams), Cloud, Number Of Dead Players(All Teams) % 2 == 0 ? Color(Rose) : Color(Black), Vector(0,
+			29.900, 0), 40, Visible To and Color);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 19, 0), 90, Visible To);
+		"# deep void"
+		Create Effect(All Players(All Teams), Cloud, Color(Black), Vector(0, 20, 0), 90, Visible To);
+		For Global Variable(X, 0, 40, 1);
+			Create Effect(All Players(All Teams), Light Shaft, Color(Black), Vector(0, -4, 0), 29 + 0.900 * Global.X, Visible To);
+			Wait(0.900 / 40, Ignore Condition);
+		End;
+	}
+}
+
+rule("@player @join")
+{
+	event
+	{
+		Player Joined Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"# wait until player spawns"
+		Wait Until(Has Spawned(Event Player), 99999);
+		"# max health is 20"
+		Set Max Health(Event Player, 20 / Max Health(Event Player) * 100);
+		"# set the ammo @todo \"@hotfix\""
+		Set Max Ammo(Event Player, 0, 1);
+		disabled Set Max Ammo(Event Player, 1, 2);
+		Set Ammo(Event Player, 0, 1);
+		"# disable reload"
+		Set Reload Enabled(Event Player, False);
+		"# take more damage"
+		Set Damage Received(Event Player, 1000);
+		"# deal more damage"
+		Set Damage Dealt(Event Player, 1000);
+		"# disable ability2"
+		Set Ability 2 Enabled(Event Player, False);
+		"# collector for storm effects"
+		Event Player.__nano_ids = Empty Array;
+		"# collector for chain lightning positions"
+		Event Player.__death_positions = Empty Array;
+	}
+}
+
+rule("@player @fin4lblow")
+{
+	event
+	{
+		Player Dealt Final Blow;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Ammo(Event Player, 0, 1);
+		disabled Set Ammo(Victim, 0, 1);
+		"# modes/respawn as random hero clears ult charge on death"
+		disabled Set Ultimate Charge(Victim, 0);
+		If(!Is Using Ultimate(Event Player));
+			Set Ultimate Charge(Event Player, 100 / Workshop Setting Integer(Custom String("game"), Custom String(
+				"number of kills for deadeye"), 5, 0, 20, 0) + Ultimate Charge Percent(Event Player));
+		End;
+		disabled If(Event Ability == Button(Ultimate));
+		disabled Play Effect(All Players(All Teams), Wrecking Ball Minefield Explosion Effect, Color(White), Evaluate Once(Eye Position(Victim)),
+			4);
+		disabled End;
+		Set Ability Cooldown(Event Player, Button(Ability 1), 0);
+		If(Event Ability == Button(Melee));
+			Event Player.punch += 1;
+		End;
+		Attacker.ks += 1;
+		Victim.ks = 0;
+		If(Attacker.ks > Attacker.maxks);
+			Attacker.maxks = Attacker.ks;
+		End;
+		If(Event Ability == Button(Ultimate));
+			Event Player.smites += 1;
+		End;
+		If(Is Using Ultimate(Victim) == True);
+			Communicate(Event Player, No);
+		Else If(Ultimate Charge Percent(Event Player) > 99);
+			Communicate(Event Player, Sorry);
+		End;
+	}
+}
+
+rule("@player @ultimate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Rule(storm, Do Nothing);
+		Start Rule(test_bolt, Do Nothing);
+		Disable Messages(Event Player);
+		Disable Hero HUD(Event Player);
+		disabled While(Is Using Ultimate(Event Player));
+		Wait(0.400, Ignore Condition);
+		Wait(Workshop Setting Real(Custom String("ultimate"), Custom String("time before forcing primary fire"), 1.200, 0.900, 4, 3),
+			Ignore Condition);
+		disabled Wait(0.900, Ignore Condition);
+		"# note: if player does not see enemies while ulting (stare in corner) the ult can expire since primary fire would not work (don't want to fix this tbh)"
+		If(Is Using Ultimate(Event Player));
+			Press Button(Event Player, Button(Primary Fire));
+			disabled End;
+			disabled Call Subroutine(storm);
+		End;
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Enable Hero HUD(Event Player);
+		Enable Messages(Event Player);
+	}
+}
+
+rule("@player @miss #priority.LOW")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Workshop Setting Toggle(Custom String("game"), Custom String("ultimate percentage is cleared when a player misses"), True, 2)
+			== True;
+		Ammo(Event Player, 0) < 1;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Log To Inspector(Custom String("miss"));
+		If(Ultimate Charge Percent(Event Player) != 100);
+			Set Ultimate Charge(Event Player, 0);
+		End;
+		"# delete icon"
+		Call Subroutine(dump);
+		Small Message(Event Player, Custom String("{0} out of ammo", Ability Icon String(Hero(Cassidy), Button(Melee))));
+	}
+}
+
+disabled rule("")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dead(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Wait(0.900, Abort When False);
+		disabled If(!Is Button Held(Event Player, Button(Jump)));
+		disabled Respawn(Event Player);
+		disabled End;
+	}
+}
+
+rule("@player @death")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"# smite players"
+		If(Event Ability == Button(Ultimate));
+			Start Rule(smite, Do Nothing);
+		End;
+		"# view chimera"
+		Wait(0.900, Abort When False);
+		disabled If(!Is Button Held(Event Player, Button(Jump)));
+		Respawn(Event Player);
+		disabled End;
+		Call Subroutine(dump);
+	}
+}
+
+rule("@animation @storm")
+{
+	event
+	{
+		Subroutine;
+		storm;
+	}
+
+	actions
+	{
+		Create Effect(Filtered Array(All Players(All Teams), Current Array Element != Event Player), Echo Cloning Effect, Color(White),
+			Event Player, 1, None);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		"# nano all players"
+		For Player Variable(Event Player, __nano_iterator, 0, Count Of(All Players(All Teams)), 1);
+			disabled Create Effect(All Players(All Teams), Winston Tesla Cannon Target Effect, Color(Team 1), All Players(All Teams)
+				[Event Player.__nano_iterator], 1, None);
+			disabled Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+			"# target: WORLD_POSITION, visible_to: ALL_PLAYERS"
+			Create Effect(All Players(All Teams), Bad Aura, Custom Color(23, 16, 40, 90), Evaluate Once(Position Of(All Players(All Teams)
+				[Event Player.__nano_iterator]) + Vector(0, Y Component Of(Position Of(Event Player)) + 19, 0)), 19, None);
+			Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+			"# target: ALL_PLAYERS, visible_to: TARGET_PLAYER"
+			Create Effect(All Players(All Teams)[Event Player.__nano_iterator], Widowmaker Venom Mine Target Effect, Team 2, All Players(
+				All Teams)[Event Player.__nano_iterator], 1, None);
+			Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+			Create Effect(All Players(All Teams)[Event Player.__nano_iterator], Winston Tesla Cannon Target Effect, Team 2, All Players(
+				All Teams)[Event Player.__nano_iterator], 1, None);
+			Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+			"# target: OTHER_PLAYERS, visible_to: ALL_EXCEPT_TARGET"
+			Create Effect(Filtered Array(All Players(All Teams), Current Array Element != All Players(All Teams)
+				[Event Player.__nano_iterator]), Ashe Dynamite Burning Particle Effect, Color(Team 1), All Players(All Teams)
+				[Event Player.__nano_iterator], 1, None);
+			Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		End;
+		"# players during storm activating"
+		For Player Variable(Event Player, __for_stormtargets, 0, Count Of(Filtered Array(All Living Players(All Teams),
+			Current Array Element != Event Player && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
+			Barriers Do Not Block LOS))), 1);
+			disabled Create Effect(All Players(All Teams), Ana Nano Boosted Effect, Color(Team 1), Filtered Array(All Living Players(All Teams),
+				Current Array Element != Event Player && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
+				Barriers Do Not Block LOS))[Event Player.__for_stormtargets], 1, Visible To Position and Radius);
+			"# ground position"
+			Play Effect(All Players(All Teams), Brigitte Repair Pack Impact Effect, Color(Team 1), Nearest Walkable Position(Filtered Array(
+				All Living Players(All Teams), Current Array Element != Event Player && Is In Line of Sight(Eye Position(Event Player),
+				Eye Position(Current Array Element), Barriers Do Not Block LOS))[Event Player.__for_stormtargets]), 1);
+			"# head position"
+			disabled Play Effect(All Players(All Teams), Doomfist Rising Uppercut Impact Effect, Color(Team 2), Eye Position(Filtered Array(
+				All Living Players(All Teams), Current Array Element != Event Player && Is In Line of Sight(Eye Position(Event Player),
+				Eye Position(Current Array Element), Barriers Do Not Block LOS))[Event Player.__for_stormtargets]), 1);
+			"# torso position"
+			Play Effect(All Players(All Teams), Tracer Recall Reappear Effect, Color(Team 1), Filtered Array(All Living Players(All Teams),
+				Current Array Element != Event Player && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
+				Barriers Do Not Block LOS))[Event Player.__for_stormtargets], 1);
+			disabled Play Effect(All Players(All Teams), Doomfist Rising Uppercut Impact Effect, Color(Team 1), Nearest Walkable Position(
+				Filtered Array(All Living Players(All Teams), Current Array Element != Event Player && Is In Line of Sight(Eye Position(
+				Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS))[Event Player.__for_stormtargets]), 1);
+			disabled Wait(Random Real(0, 0.090), Ignore Condition);
+			disabled Play Effect(All Players(All Teams), Doomfist Meteor Strike Impact Effect, Color(Team 1), Nearest Walkable Position(Filtered Array(
+				All Living Players(All Teams), Current Array Element != Event Player)[Event Player.__for_stormtargets]), 1);
+			Wait(Random Real(-0.400, 0.200), Ignore Condition);
+		End;
+		disabled Play Effect(All Players(All Teams), Brigitte Repair Pack Impact Effect, Color(White), Vector(0, 2, 0), 2);
+		disabled Play Effect(All Players(All Teams), Brigitte Whip Shot Heal Area Effect, Color(White), Event Player, 1);
+		disabled Play Effect(All Players(All Teams), DVa Micro Missiles Explosion Effect, Color(White), Vector(0, 4, 0), 2);
+		disabled Wait(0.900, Ignore Condition);
+		disabled Play Effect(All Players(All Teams), DVa Self Destruct Explosion Effect, Color(White), Event Player, 9);
+		disabled Play Effect(All Players(All Teams), Echo Sticky Bomb Explosion Effect, Color(White), Vector(0, 2, 0), 2);
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		disabled Destroy Effect(Event Player.__deleted_xa23sd);
+		Wait(0.400, Ignore Condition);
+		"# de-nano all players"
+		disabled For Player Variable(Event Player, __nano_iterator, 0, Count Of(Event Player.__nano_ids), 1);
+		disabled Destroy Effect(Event Player.__nano_ids[Event Player.__nano_iterator]);
+		disabled Destroy Icon(Event Player.__nano_ids[Event Player.__nano_iterator]);
+		disabled Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		disabled End;
+		disabled Event Player.__nano_ids = Empty Array;
+		disabled Event Player.__death_positions = Empty Array;
+		Call Subroutine(dump);
+	}
+}
+
+rule("@animation @storm @death")
+{
+	event
+	{
+		Subroutine;
+		smite;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Doomfist Meteor Strike Impact Sound, Color(White), Event Player, 90);
+		disabled Destroy Effect(Event Player.__deleted_xa23sd);
+		disabled Create Effect(All Players(All Teams), Ana Nano Boosted Effect, Color(Team 1), Event Player, 1, Visible To Position and Radius);
+		disabled Event Player.__deleted_xa23sd = Last Created Entity;
+		"# optional"
+		Play Effect(All Players(All Teams), Winston Jump Pack Landing Effect, Color(Team 1), Position Of(Event Player), 1);
+		Play Effect(All Players(All Teams), Doomfist Rising Uppercut Impact Effect, Color(Team 1), Evaluate Once(Eye Position(
+			Event Player)), 1);
+		Play Effect(All Players(All Teams), Sombra Translocator Disappear Effect, Color(Team 1), Position Of(Event Player), 1);
+		disabled Wait(Random Real(0, 0.400) - 0.020 * Attacker.__for_stormtargets, Ignore Condition);
+		Wait(Random Real(0, 0.400), Ignore Condition);
+		Play Effect(All Players(All Teams), Doomfist Meteor Strike Impact Effect, Color(Team 1), Position Of(Event Player), 1);
+		disabled Wait Until(Is Dead(Event Player), 99999);
+		disabled Wait Until(Is Alive(Event Player), 99999);
+		disabled Destroy Effect(Event Player.__deleted_xa23sd);
+		"# double storm"
+		disabled Create Effect(All Players(All Teams), Ana Nano Boosted Effect, Color(White), Event Player, 1, None);
+		Create Effect(All Players(All Teams), Cassidy Flashbang Stunned Effect, Color(White), Event Player, 1, None);
+		disabled Create Effect(All Players(All Teams), Mei Frozen Effect, Color(White), Event Player, 1, None);
+		Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+		"# secondary affect"
+		Create Effect(All Players(All Teams), Winston Tesla Cannon Target Effect, Color(White), Event Player, 1, None);
+		Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+		"# chain tesla"
+		If(Count Of(Attacker.__death_positions) > 0);
+			"# stratosphere negativity"
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Last Of(Attacker.__death_positions)) + Vector(Random Real(4, -4), Random Real(19, 29), Random Real(4, -4)), Position Of(Victim)
+				+ Vector(0, Random Real(9, 14), 0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			disabled Create Beam Effect(All Players(All Teams), Winston Tesla Cannon Beam, Eye Position(Last Of(Attacker.__death_positions)),
+				Eye Position(Victim), Color(Yellow), None);
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Last Of(Attacker.__death_positions)) + Vector(Random Real(4, -4), Random Real(19, 29), Random Real(4, -4)), Position Of(Victim)
+				+ Vector(0, Random Real(9, 19), 0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			"# secondary strikes"
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 2), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(0, 9),
+				0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 9), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(9,
+				19), 0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			"# secondary strikes"
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 2), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(0, 9),
+				0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 9), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(9,
+				19), 0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			"# secondary strikes"
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 2), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(0, 9),
+				0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+			Create Beam Effect(Is Using Ultimate(Attacker) ? All Players(All Teams) : Empty Array, Winston Tesla Cannon Beam, Position Of(
+				Victim) + Vector(Random Real(4, -4), Random Real(0, 9), Random Real(4, -4)), Position Of(Victim) + Vector(0, Random Real(9,
+				19), 0), Color(Team 1), Visible To);
+			Modify Player Variable(Attacker, __nano_ids, Append To Array, Last Created Entity);
+		End;
+		Modify Player Variable(Attacker, __death_positions, Append To Array, Event Player);
+	}
+}
+
+rule("@world @party")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Host Player, Null, Custom String("visual potential"), Custom String("{0} entities, {2}%", Entity Count, Null,
+			Round To Integer(Entity Count / 256 * 100, Up)), Left, 0, Color(White), Color(Rose), Color(White), Visible To and String,
+			Default Visibility);
+		Disable Inspector Recording;
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("THIS MODE IS UNDER DEVELOPMENT"), Left, -9, Color(White), Color(
+			White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("please use code \"3PAWR\" for now, it will be updated"), Null, Left,
+			-8, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("  "), Null, Left, -6, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Set Objective Description(All Players(All Teams), Custom String("  code: 3pawr"), Visible To);
+		Create HUD Text(All Players(All Teams), Null, Custom String("made with ♥️️ by stormy"), Null, Left, -7, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		disabled Create Effect(All Players(All Teams), Echo Cloning Effect, Color(White), Closest Player To(Last Of(Sorted Array(All Players(
+			All Teams), Score Of(Current Array Element))), All Teams), 1, Visible To Position and Radius);
+	}
+}
+
+disabled rule("@develop @toppy")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Y Component Of(Position Of(Event Player)) < 9;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(X Component Of(Position Of(Event Player)), 46, Z Component Of(Position Of(Event Player))));
+	}
+}
+
+rule("@world @gameinfo")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"# game board"
+		Create HUD Text(All Players(All Teams), Null, Custom String(" "), Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Icon String(Bolt), Custom String(
+			"deadeye elims"), Custom String("{0} - {2}", Last Of(Sorted Array(All Players(All Teams), Current Array Element.smites)), Null,
+			Last Of(Sorted Array(All Players(All Teams), Current Array Element.smites)).smites), Left, 1, Custom Color(254, 163, 170, 255),
+			Custom Color(254, 163, 170, 255), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("  "), Null, Left, 2, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Ability Icon String(Hero(Pharah),
+			Button(Ability 1)), Custom String("higest killstreak"), Custom String("{0} - {2}", Last Of(Sorted Array(All Players(All Teams),
+			Current Array Element.maxks)), Null, Last Of(Sorted Array(All Players(All Teams), Current Array Element.maxks)).maxks), Left,
+			3, Custom Color(248, 184, 139, 255), Custom Color(248, 184, 139, 255), Color(White), Visible To and String,
+			Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("  "), Null, Left, 4, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Ability Icon String(Hero(Ana), Button(
+			Melee)), Custom String("most melees"), Custom String("{0} - {2}", Last Of(Sorted Array(All Players(All Teams),
+			Current Array Element.punch)), Null, Last Of(Sorted Array(All Players(All Teams), Current Array Element.punch)).punch), Left,
+			5, Custom Color(250, 248, 132, 255), Custom Color(250, 248, 132, 255), Color(White), Visible To and String,
+			Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("  "), Null, Left, 6, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Ability Icon String(Hero(Mercy), Button(
+			Ultimate)), Custom String("higest k/d"), Custom String("{0} - {2}", Last Of(Sorted Array(All Players(All Teams), Player Stat(
+			Current Array Element, Final Blows) / Player Stat(Current Array Element, Deaths))), Null, Player Stat(Last Of(Sorted Array(
+			All Players(All Teams), Player Stat(Current Array Element, Final Blows) / Player Stat(Current Array Element, Deaths))),
+			Final Blows) / Player Stat(Last Of(Sorted Array(All Players(All Teams), Player Stat(Current Array Element, Final Blows)
+			/ Player Stat(Current Array Element, Deaths))), Deaths)), Left, 7, Custom Color(186, 237, 145, 255), Custom Color(186, 237,
+			145, 255), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String(" "), Null, Left, 8, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Ability Icon String(Hero(Baptiste),
+			Button(Ability 2)), Custom String("best multikill"), Custom String("{0} - {2}", Last Of(Sorted Array(All Players(All Teams),
+			Player Stat(Current Array Element, Multikill Best))), Null, Player Stat(Last Of(Sorted Array(All Players(All Teams),
+			Player Stat(Current Array Element, Multikill Best))), Multikill Best)), Left, 9, Custom Color(178, 206, 254, 255),
+			Custom Color(178, 206, 254, 255), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String(" "), Null, Left, 11, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), !Current Array Element.isFocusing), Ability Icon String(Hero(Echo), Button(
+			Secondary Fire)), Custom String("best accuracy"), Custom String("{0} - {2}%", Last Of(Sorted Array(All Players(All Teams),
+			Player Hero Stat(Current Array Element, Hero(Cassidy), Weapon Accuracy))), Null, Round To Integer(Player Hero Stat(Last Of(
+			Sorted Array(All Players(All Teams), Player Hero Stat(Current Array Element, Hero(Cassidy), Weapon Accuracy))), Hero(Cassidy),
+			Weapon Accuracy) * 100, Up)), Left, 12, Custom Color(242, 162, 232, 255), Custom Color(242, 162, 232, 255), Color(White),
+			Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Custom String("{0}. {2}", Player Stat(Host Player, Multikills), Null, Player Stat(
+			Host Player, Multikill Best)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		disabled Create HUD Text(Host Player, Custom String("TEST {0}", Player Stat(Host Player, Multikill Best)), Null, Null, Right, 0, Color(
+			White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("@player @focus")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.isFocusing = !Event Player.isFocusing;
+		If(Event Player.isFocusing);
+			Disable Game Mode HUD(Event Player);
+		Else;
+			Enable Game Mode HUD(Event Player);
+		End;
+	}
+}
+
+rule("@player @has.ultimate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Ultimate Charge Percent(Event Player) > 99;
+	}
+
+	actions
+	{
+		Create Icon(Filtered Array(All Players(All Teams), !Is In View Angle(Current Array Element, Event Player, 45)), Event Player, Bolt,
+			Visible To and Position, Color(Yellow), True);
+		Modify Player Variable(Event Player, __nano_ids, Append To Array, Last Created Entity);
+		Small Message(All Players(All Teams), Custom String("{0} has ultimate", Event Player));
+		Start Forcing Player Outlines(Event Player, All Players(All Teams), True, Custom Color(250, 248, 182, 120), Always);
+		disabled Wait Until(Ultimate Charge Percent(Event Player) < 99, 99999);
+		While(Ultimate Charge Percent(Event Player) > 99 || Is Using Ultimate(Event Player));
+			Play Effect(All Players(All Teams), DVa Micro Missiles Explosion Effect, Color(White), Event Player, 1);
+			Play Effect(All Players(All Teams), Brigitte Whip Shot Heal Area Effect, Color(Team 1), Position Of(Event Player) + Vector(0,
+				0.900, 0), 1);
+			Wait(0.400, Ignore Condition);
+		End;
+		Stop Forcing Player Outlines(Event Player, All Players(All Teams));
+	}
+}
+
+rule("@player @dump")
+{
+	event
+	{
+		Subroutine;
+		dump;
+	}
+
+	actions
+	{
+		"# de-nano all players"
+		For Player Variable(Event Player, __nano_iterator, 0, Count Of(Event Player.__nano_ids), 1);
+			Destroy Effect(Event Player.__nano_ids[Event Player.__nano_iterator]);
+			Destroy Icon(Event Player.__nano_ids[Event Player.__nano_iterator]);
+		End;
+		Event Player.__nano_ids = Empty Array;
+		Event Player.__death_positions = Empty Array;
+	}
+}
+
+rule("@player @quit")
+{
+	event
+	{
+		Player Left Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Call Subroutine(dump);
+	}
+}
+
+rule("@player @ultimate @gravity")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Workshop Setting Toggle(Custom String("ultimate"), Custom String("using ultimate elavates player"), True, 0) == True;
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Set Gravity(Event Player, 80);
+		Set Jump Vertical Speed(Event Player, 0);
+		Apply Impulse(Event Player, Up, 4, To World, Cancel Contrary Motion);
+		While(Is Using Ultimate(Event Player));
+			If(Vertical Speed Of(Event Player) > 0);
+				Apply Impulse(Event Player, Down, 0.090, To World, Incorporate Contrary Motion);
+			End;
+			Set Gravity(Event Player, 40 - Event Player.__q_time * 10);
+			Wait(0.090, Ignore Condition);
+		End;
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Set Gravity(Event Player, 100);
+		Set Jump Vertical Speed(Event Player, 100);
+	}
+}
+
+rule("@player @ultimate @size")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+		Workshop Setting Toggle(Custom String("ultimate"), Custom String("player grows when using ultimate"), False, 1) == True;
+	}
+
+	actions
+	{
+		"# make player gradually bigger when ulting"
+		Start Scaling Player(Event Player, 1 + Event Player.__q_time / 9, True);
+		"# stop making player bigger"
+		Stop Scaling Player(Event Player);
+	}
+}
+
+rule("@player @ultimate @voice")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Modifying Hero Voice Lines(Event Player, Workshop Setting Real(Custom String("ultimate"), Custom String("voice modifier"),
+			0.600, 0, 2, 2), False);
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Start Modifying Hero Voice Lines(Event Player, 1, False);
+	}
+}
+
+rule("@player @ultimate @persist")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Workshop Setting Toggle(Custom String("game"), Custom String("ultimate percentage persists after death"), False, 1) == True;
+		Event Player == Host Player;
+	}
+
+	actions
+	{
+		disabled Log To Inspector(Ultimate Charge Percent(Event Player));
+		Event Player.__q_percent = Ultimate Charge Percent(Event Player);
+		Wait Until(Has Spawned(Event Player), 99999);
+		Wait Until(Is Alive(Event Player), 99999);
+		Wait(0.016, Ignore Condition);
+		"# this is needed for some reason :("
+		Wait(0.016, Ignore Condition);
+		Set Ultimate Charge(Event Player, Event Player.__q_percent);
+		disabled Log To Inspector(Ultimate Charge Percent(Event Player));
+		Event Player.__q_percent = 0;
+	}
+}
+
+rule("@player @ultimate @q_time")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.__q_time = Total Time Elapsed;
+		Chase Player Variable Over Time(Event Player, __q_time, 9999, 9999, None);
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Stop Chasing Player Variable(Event Player, __q_time);
+		Event Player.__q_time = 0;
+	}
+}
+
+rule("@before @match @info")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Is Game In Progress ? All Dead Players(All Teams) : All Players(All Teams), Null, Null, Custom String(
+			"• Toggle hiding game UI with {0} button", Input Binding String(Button(Interact))), Right, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Is Game In Progress ? All Dead Players(All Teams) : All Players(All Teams), Null, Null, Custom String(
+			"• Any kills will reset cooldowns for your combat roll"), Right, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Is Game In Progress ? All Dead Players(All Teams) : All Players(All Teams), Null, Null, Custom String(
+			"• Fan the hammer may be useful in some situations"), Right, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Is Game In Progress ? All Dead Players(All Teams) : All Players(All Teams), Null, Null, Custom String(
+			"• You can change some behavior in workshop settings"), Right, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+	}
+}
+
+rule("@player @welcome")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.440, Ignore Condition);
+		disabled Play Effect(All Players(All Teams), Brigitte Repair Pack Armor Effect, Color(White), Event Player, 1);
+		Play Effect(All Players(All Teams), Brigitte Repair Pack Impact Effect, Color(White), Event Player, 90);
+		disabled Play Effect(Closest Player To(Event Player, All Teams), Sombra Logo Sound, Color(White), Event Player, 40);
+		disabled Play Effect(Filtered Array(All Living Players(All Teams), !Is In View Angle(Current Array Element, Event Player, 45)),
+			Sombra Logo Sound, Color(White), Event Player, 40);
+		Play Effect(Filtered Array(All Living Players(All Teams), !Is In View Angle(Current Array Element, Position Of(Event Player), 90)),
+			Brigitte Repair Pack Impact Sound, Color(White), Event Player, 20);
+	}
+}

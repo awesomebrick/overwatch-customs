@@ -1,0 +1,71 @@
+settings {
+    "main": {
+        "modeName": "explore 0.0.2"
+    },
+    "lobby": {
+        "allowPlayersInQueue": true
+    },
+    "gamemodes": {
+        "skirmish": {
+            "enabledMaps": [
+                "numbani"
+            ]
+        },
+        "general": {
+            "roleLimit": "1Tank2Offense2Support"
+        }
+    },
+    "heroes": {
+        "allTeams": {
+            "general": {
+                "abilityCooldown%": 0,
+                "damageDealt%": 10,
+                "damageReceived%": 10,
+                "movementSpeed%": 250
+            }
+        }
+    }
+}
+
+rule "Rule 1":
+    @Event eachPlayer
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    
+    #save current position for now
+    eventPlayer.P = eventPlayer.getPosition()
+    #change character
+    eventPlayer.setAllowedHeroes([i for i in getAllHeroes() if i != eventPlayer.getCurrentHero()])
+    eventPlayer.resetHeroAvailability()
+    waitUntil(eventPlayer.hasSpawned(), 99999)
+    #return to position
+    eventPlayer.startForcingPosition(eventPlayer.P, false)
+    #wait(2.25)
+    #wait until char at spawn
+    #wait(0.25)
+    waitUntil(eventPlayer.getPosition() == eventPlayer.P, 99999)
+    eventPlayer.stopForcingPosition()
+
+
+/*
+rule "letts try this insteadRule 1":
+    @Event eachPlayer
+    #if holding interact;
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    
+    #save current position for now
+    eventPlayer.P = eventPlayer.getPosition()
+    #change character
+    eventPlayer.setAllowedHeroes([i for i in getAllHeroes() if i != eventPlayer.getCurrentHero()])
+    eventPlayer.resetHeroAvailability()
+    #return to positino
+    #waitUntil(eventPlayer.getPosition() != eventPlayer.P, 99999)
+    eventPlayer.startForcingPosition(eventPlayer.P, false)
+    waitUntil(eventPlayer.getPosition() != eventPlayer.isInSpawnRoom(), 99999)
+    eventPlayer.stopForcingPosition()
+*/
+
+rule "UI TEXT":
+    hudText(getAllPlayers(), "", null, "interact to change characters", HudPosition.LEFT, 0, Color.WHITE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+
